@@ -10,6 +10,7 @@ public class AABBBounds
     public Vector3 Max { get; private set; }
     public int ID { get; private set; }
     public bool IsPlayer { get; private set; }
+    public bool IsTrigger { get; set; }
     public Matrix4x4 Matrix { get; set; }
 
     public AABBBounds(Vector3 center, Vector3 size, int id, bool isPlayer = false)
@@ -118,4 +119,10 @@ public class CollisionManager : MonoBehaviour
         }
         return Matrix4x4.identity;
     }
+    public void SetTrigger(int id, bool value)
+    {
+        if (_colliders.TryGetValue(id, out AABBBounds b))
+            b.IsTrigger = value;
+    }
+
 }

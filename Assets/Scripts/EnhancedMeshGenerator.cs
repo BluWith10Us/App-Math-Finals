@@ -20,7 +20,11 @@ public class EnhancedMeshGenerator : MonoBehaviour
     
     public float movementSpeed = 5f;
     public float gravity = 9.8f;
-    
+    public float jumpForce = 12f;    // upward speed
+    public float fallMultiplier = 2.5f; // gravity boost when falling
+    public float lowJumpMultiplier = 2f; // for tap jumping
+    public float airControlMultiplier = 0.5f; // half speed in air
+
     private int playerID = -1;
     private Vector3 playerVelocity = Vector3.zero;
     private bool isGrounded = false;
@@ -241,79 +245,94 @@ public class EnhancedMeshGenerator : MonoBehaviour
         UpdatePlayer();
         RenderBoxes();
     }
-    
+
     void UpdatePlayer()
     {
         if (playerID == -1) return;
-        
-        // Get current player matrix
-        Matrix4x4 playerMatrix = matrices[colliderIds.IndexOf(playerID)];
+
+        int index = colliderIds.IndexOf(playerID);
+        Matrix4x4 playerMatrix = matrices[index];
         DecomposeMatrix(playerMatrix, out Vector3 pos, out Quaternion rot, out Vector3 scale);
-        
-        // Reset velocity.y when grounded
-        if (isGrounded)
-        {
-            playerVelocity.y = 0;
-        }
-        
-        // Apply gravity
-        if (!isGrounded)
-        {
-            playerVelocity.y -= gravity * Time.deltaTime;
-        }
-        
-        // Get horizontal input
+
+        // --------------------
+        // INPUT
+        // --------------------
         float horizontal = 0;
         if (Input.GetKey(KeyCode.A)) horizontal -= 1;
         if (Input.GetKey(KeyCode.D)) horizontal += 1;
-        
-        // Update player position based on input
-        Vector3 newPos = pos;
-        newPos.x += horizontal * movementSpeed * Time.deltaTime;
-        
-        // Apply horizontal movement if no collision
-        if (!CheckCollisionAt(playerID, new Vector3(newPos.x, pos.y, pos.z)))
+
+        // Jump input
+        if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
         {
-            pos.x = newPos.x;
+            playerVelocity.y = jumpForce;   // FAST UP
+            isGrounded = false;
         }
-        
-        // Apply gravity/vertical movement
-        newPos = pos;
-        newPos.y += playerVelocity.y * Time.deltaTime;
-        
-        // Check for vertical collisions
-        if (CheckCollisionAt(playerID, new Vector3(pos.x, newPos.y, pos.z)))
+
+        // --------------------
+        // AIR CONTROL REDUCTION
+        // --------------------
+        float speedMultiplier = isGrounded ? 1f : airControlMultiplier;
+
+        // --------------------
+        // HORIZONTAL MOVEMENT
+        // --------------------
+        Vector3 attemptPos = pos;
+        attemptPos.x += horizontal * movementSpeed * speedMultiplier * Time.deltaTime;
+
+        if (!CheckCollisionAt(playerID, new Vector3(attemptPos.x, pos.y, pos.z)))
+            pos.x = attemptPos.x;
+
+        // --------------------
+        // GRAVITY MODIFIER SYSTEM
+        // FAST UP, SLOW DOWN
+        // --------------------
+
+        if (playerVelocity.y < 0) // falling
+            playerVelocity.y -= gravity * fallMultiplier * Time.deltaTime;
+        else if (playerVelocity.y > 0 && !Input.GetKey(KeyCode.Space)) // jump cut
+            playerVelocity.y -= gravity * lowJumpMultiplier * Time.deltaTime;
+        else
+            playerVelocity.y -= gravity * Time.deltaTime;
+
+        // --------------------
+        // VERTICAL MOVEMENT
+        // --------------------
+        attemptPos = pos;
+        attemptPos.y += playerVelocity.y * Time.deltaTime;
+
+        if (CheckCollisionAt(playerID, new Vector3(pos.x, attemptPos.y, pos.z)))
         {
-            // We hit something below or above
-            if (playerVelocity.y < 0)
-            {
-                // We hit something below
-                isGrounded = true;
-            }
+            // Ground or ceiling hit
+            if (playerVelocity.y < 0) isGrounded = true;
             playerVelocity.y = 0;
         }
         else
         {
-            // No collision, apply gravity
-            pos.y = newPos.y;
+            pos.y = attemptPos.y;
             isGrounded = false;
         }
-        
-        // Update matrix
+
+        // --------------------
+        // APPLY TRANSFORM
+        // --------------------
         Matrix4x4 newMatrix = Matrix4x4.TRS(pos, rot, scale);
-        matrices[colliderIds.IndexOf(playerID)] = newMatrix;
-        
-        // Update collider position - properly handle rectangular shape
-        CollisionManager.Instance.UpdateCollider(playerID, pos, new Vector3(width * scale.x, height * scale.y, depth * scale.z));
+        matrices[index] = newMatrix;
+
+        CollisionManager.Instance.UpdateCollider(playerID, pos, new Vector3(
+            width * scale.x,
+            height * scale.y,
+            depth * scale.z));
+
         CollisionManager.Instance.UpdateMatrix(playerID, newMatrix);
-        
-        // Update camera to follow player
+
+        // --------------------
+        // CAMERA FOLLOW
+        // --------------------
         if (cameraFollow != null)
-        {
             cameraFollow.SetPlayerPosition(pos);
-        }
     }
-    
+
+
     bool CheckCollisionAt(int id, Vector3 position)
     {
         return CollisionManager.Instance.CheckCollision(id, position, out _);
