@@ -13,11 +13,11 @@ public class EnhancedMeshGenerator : MonoBehaviour
     private Mesh cubeMesh;
     private List<Matrix4x4> matrices = new List<Matrix4x4>();
     private List<int> colliderIds = new List<int>();
-    
+
     public float width = 1f;
     public float height = 1f;
     public float depth = 1f;
-    
+
     public float movementSpeed = 5f;
     public float gravity = 9.8f;
     public float jumpForce = 12f;    // upward speed
@@ -28,19 +28,19 @@ public class EnhancedMeshGenerator : MonoBehaviour
     private int playerID = -1;
     private Vector3 playerVelocity = Vector3.zero;
     private bool isGrounded = false;
-    
+
     // Camera reference
     public PlayerCameraFollow cameraFollow;
-    
+
     // Z-position constant for all boxes
     public float constantZPosition = 0f;
-    
+
     // Range for random generation
     public float minX = -50f;
     public float maxX = 50f;
     public float minY = -50f;
     public float maxY = 50f;
-    
+
     // Ground plane settings
     public float groundY = -20f;
     public float groundWidth = 200f;
@@ -50,20 +50,20 @@ public class EnhancedMeshGenerator : MonoBehaviour
     {
         // Find or create camera if not assigned
         SetupCamera();
-        
+
         // Create the cube mesh
         CreateCubeMesh();
-        
+
         // Create player box
         CreatePlayer();
-        
+
         // Create ground
         CreateGround();
-        
+
         // Set up random boxes
         GenerateRandomBoxes();
     }
-    
+
     void SetupCamera()
     {
         if (cameraFollow == null)
@@ -86,11 +86,11 @@ public class EnhancedMeshGenerator : MonoBehaviour
                 GameObject cameraObj = new GameObject("PlayerCamera");
                 Camera cam = cameraObj.AddComponent<Camera>();
                 cameraFollow = cameraObj.AddComponent<PlayerCameraFollow>();
-                
+
                 // Set this as the main camera
                 cam.tag = "MainCamera";
             }
-            
+
             // Configure default camera settings
             cameraFollow.offset = new Vector3(0, 0, -15);
             cameraFollow.smoothSpeed = 0.1f;
@@ -100,7 +100,7 @@ public class EnhancedMeshGenerator : MonoBehaviour
     void CreateCubeMesh()
     {
         cubeMesh = new Mesh();
-        
+
         // Create 8 vertices for the cube (corners)
         Vector3[] vertices = new Vector3[8]
         {
@@ -116,7 +116,7 @@ public class EnhancedMeshGenerator : MonoBehaviour
             new Vector3(width, height, depth),// Top back right - 6
             new Vector3(0, height, depth)    // Top back left - 7
         };
-        
+
         // Triangles for the 6 faces (2 triangles per face)
         int[] triangles = new int[36]
         {
@@ -144,7 +144,7 @@ public class EnhancedMeshGenerator : MonoBehaviour
             4, 7, 5,
             5, 7, 6
         };
-        
+
         Vector2[] uvs = new Vector2[8];
         for (int i = 0; i < 8; i++)
         {
@@ -157,51 +157,51 @@ public class EnhancedMeshGenerator : MonoBehaviour
         cubeMesh.RecalculateNormals();
         cubeMesh.RecalculateBounds();
     }
-    
+
     void CreatePlayer()
     {
         // Create player at a specific position
         Vector3 playerPosition = new Vector3(0, 10, constantZPosition);
         Vector3 playerScale = Vector3.one;
         Quaternion playerRotation = Quaternion.identity;
-        
+
         // Register with collision system - properly handle width/height/depth
         playerID = CollisionManager.Instance.RegisterCollider(
-            playerPosition, 
-            new Vector3(width * playerScale.x, height * playerScale.y, depth * playerScale.z), 
+            playerPosition,
+            new Vector3(width * playerScale.x, height * playerScale.y, depth * playerScale.z),
             true);
-        
+
         // Create transformation matrix
         Matrix4x4 playerMatrix = Matrix4x4.TRS(playerPosition, playerRotation, playerScale);
         matrices.Add(playerMatrix);
         colliderIds.Add(playerID);
-        
+
         // Update the matrix in collision manager
         CollisionManager.Instance.UpdateMatrix(playerID, playerMatrix);
     }
-    
+
     void CreateGround()
     {
         // Create a large ground plane
         Vector3 groundPosition = new Vector3(0, groundY, constantZPosition);
         Vector3 groundScale = new Vector3(groundWidth, 1f, groundDepth);
         Quaternion groundRotation = Quaternion.identity;
-        
+
         // Register with collision system - use actual dimensions
         int groundID = CollisionManager.Instance.RegisterCollider(
-            groundPosition, 
-            new Vector3(groundWidth, 1f, groundDepth), 
+            groundPosition,
+            new Vector3(groundWidth, 1f, groundDepth),
             false);
-        
+
         // Create transformation matrix
         Matrix4x4 groundMatrix = Matrix4x4.TRS(groundPosition, groundRotation, groundScale);
         matrices.Add(groundMatrix);
         colliderIds.Add(groundID);
-        
+
         // Update the matrix in collision manager
         CollisionManager.Instance.UpdateMatrix(groundID, groundMatrix);
     }
-    
+
     void GenerateRandomBoxes()
     {
         // Create random boxes (excluding player and ground)
@@ -213,28 +213,28 @@ public class EnhancedMeshGenerator : MonoBehaviour
                 Random.Range(minY, maxY),
                 constantZPosition
             );
-            
+
             // Random rotation only around Z axis
             Quaternion rotation = Quaternion.Euler(0, 0, Random.Range(0f, 360f));
-            
+
             // Random non-uniform scale - different for each dimension
             Vector3 scale = new Vector3(
                 Random.Range(0.5f, 3f),
                 Random.Range(0.5f, 3f),
                 Random.Range(0.5f, 3f)
             );
-            
+
             // Register with collision system - properly handle rectangular shapes
             int id = CollisionManager.Instance.RegisterCollider(
-                position, 
-                new Vector3(width * scale.x, height * scale.y, depth * scale.z), 
+                position,
+                new Vector3(width * scale.x, height * scale.y, depth * scale.z),
                 false);
-            
+
             // Create transformation matrix
             Matrix4x4 boxMatrix = Matrix4x4.TRS(position, rotation, scale);
             matrices.Add(boxMatrix);
             colliderIds.Add(id);
-            
+
             // Update the matrix in collision manager
             CollisionManager.Instance.UpdateMatrix(id, boxMatrix);
         }
@@ -337,14 +337,15 @@ public class EnhancedMeshGenerator : MonoBehaviour
     {
         return CollisionManager.Instance.CheckCollision(id, position, out _);
     }
-    
+
     void RenderBoxes()
     {
         // Convert list to array for Graphics.DrawMeshInstanced
         Matrix4x4[] matrixArray = matrices.ToArray();
-        
+
         // Draw instanced meshes in batches of 1023 (GPU limit)
-        for (int i = 0; i < matrixArray.Length; i += 1023) {
+        for (int i = 0; i < matrixArray.Length; i += 1023)
+        {
             int batchSize = Mathf.Min(1023, matrixArray.Length - i);
             Matrix4x4[] batchMatrices = new Matrix4x4[batchSize];
             System.Array.Copy(matrixArray, i, batchMatrices, 0, batchSize);
@@ -358,7 +359,7 @@ public class EnhancedMeshGenerator : MonoBehaviour
         rotation = matrix.rotation;
         scale = matrix.lossyScale;
     }
-    
+
     // Add a new random box at runtime (can be called from button or other trigger)
     public void AddRandomBox()
     {
@@ -367,26 +368,32 @@ public class EnhancedMeshGenerator : MonoBehaviour
             Random.Range(minY, maxY),
             constantZPosition
         );
-        
+
         Quaternion rotation = Quaternion.Euler(0, 0, Random.Range(0f, 360f));
-        
+
         // Random non-uniform scale - different for each dimension
         Vector3 scale = new Vector3(
             Random.Range(0.5f, 3f),
             Random.Range(0.5f, 3f),
             Random.Range(0.5f, 3f)
         );
-        
+
         // Register with collision system - properly handle rectangular shapes
         int id = CollisionManager.Instance.RegisterCollider(
-            position, 
-            new Vector3(width * scale.x, height * scale.y, depth * scale.z), 
+            position,
+            new Vector3(width * scale.x, height * scale.y, depth * scale.z),
             false);
-        
+
         Matrix4x4 boxMatrix = Matrix4x4.TRS(position, rotation, scale);
         matrices.Add(boxMatrix);
         colliderIds.Add(id);
-        
+
         CollisionManager.Instance.UpdateMatrix(id, boxMatrix);
+    }
+    public Vector3 GetPlayerPosition()
+    {
+        int index = colliderIds.IndexOf(playerID);
+        Matrix4x4 m = matrices[index];
+        return m.GetPosition();
     }
 }

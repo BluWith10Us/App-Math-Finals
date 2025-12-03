@@ -105,8 +105,10 @@ public class CollisionManager : MonoBehaviour
             if (temp.Intersects(kvp.Value))
             {
                 collidingIds.Add(kvp.Key);
-                collided = true;
+                if (!kvp.Value.IsTrigger)
+                    collided = true;
             }
+
         }
         return collided;
     }
