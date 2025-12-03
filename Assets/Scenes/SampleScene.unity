@@ -131,7 +131,11 @@ GameObject:
   - component: {fileID: 38960018}
   m_Layer: 0
 <<<<<<< HEAD
+<<<<<<< HEAD
   m_Name: Fireball
+=======
+  m_Name: Power Up System
+>>>>>>> parent of 0bd0dfd (Power Ups Added)
 =======
   m_Name: Power Up System
 >>>>>>> parent of 0bd0dfd (Power Ups Added)
@@ -172,6 +176,7 @@ Transform:
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 <<<<<<< HEAD
+<<<<<<< HEAD
 --- !u!114 &38960020
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -186,6 +191,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   size: {x: 1, y: 1, z: 1}
   material: {fileID: 2100000, guid: bd5a8904cefd3ff4ba7699f13e4d7fe2, type: 2}
+=======
+>>>>>>> parent of 0bd0dfd (Power Ups Added)
 =======
 >>>>>>> parent of 0bd0dfd (Power Ups Added)
 --- !u!1 &330585543
