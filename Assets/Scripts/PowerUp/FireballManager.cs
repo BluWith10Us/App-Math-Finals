@@ -30,5 +30,4 @@ public class FireballManager : MonoBehaviour
         fb.material = fireballMaterial;
         fb.Init(spawnPos); // now the fireball starts at the correct position
     }
-
 }

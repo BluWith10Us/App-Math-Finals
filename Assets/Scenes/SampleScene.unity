@@ -128,14 +128,34 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 38960019}
-  - component: {fileID: 38960020}
+  - component: {fileID: 38960018}
   m_Layer: 0
+<<<<<<< HEAD
   m_Name: Fireball
+=======
+  m_Name: Power Up System
+>>>>>>> parent of 0bd0dfd (Power Ups Added)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
+--- !u!114 &38960018
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 38960017}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 095c6cc58708512449196a065c926c20, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  playerLives: 3
+  invincibleDuration: 5
+  fireballSpeed: 20
+  fireballLifetime: 3
 --- !u!4 &38960019
 Transform:
   m_ObjectHideFlags: 0
@@ -145,12 +165,13 @@ Transform:
   m_GameObject: {fileID: 38960017}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 12.48, y: 6.79, z: 0}
+  m_LocalPosition: {x: -0.11197519, y: 0.60054374, z: -10.065446}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+<<<<<<< HEAD
 --- !u!114 &38960020
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -165,6 +186,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   size: {x: 1, y: 1, z: 1}
   material: {fileID: 2100000, guid: bd5a8904cefd3ff4ba7699f13e4d7fe2, type: 2}
+=======
+>>>>>>> parent of 0bd0dfd (Power Ups Added)
 --- !u!1 &330585543
 GameObject:
   m_ObjectHideFlags: 0
