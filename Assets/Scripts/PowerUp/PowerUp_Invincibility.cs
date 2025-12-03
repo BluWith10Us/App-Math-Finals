@@ -1,7 +1,7 @@
 using UnityEngine;
 using Matrix4x4 = UnityEngine.Matrix4x4;
 
-public class PowerUp_Invincibility : MonoBehaviour
+public class PowerUp_Invinciblity : MonoBehaviour
 {
     public Vector3 size = Vector3.one;
     public float duration = 5f;

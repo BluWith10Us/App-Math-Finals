@@ -15,6 +15,7 @@ public class FireballManager : MonoBehaviour
     {
         Vector3 spawnPos = EnhancedMeshGeneratorInstance().GetPlayerPosition();
         spawnPos.x += 1.5f; // spawn slightly in front
+        spawnPos.y += 0.5f;
 
         GameObject go = new GameObject("Fireball");
         FireballProjectile fb = go.AddComponent<FireballProjectile>();

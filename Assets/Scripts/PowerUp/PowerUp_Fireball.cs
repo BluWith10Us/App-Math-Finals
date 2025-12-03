@@ -29,6 +29,7 @@ public class PowerUp_Fireball : MonoBehaviour
         if (collected) return;
 
         DetectPlayer();
+
         Graphics.DrawMesh(mesh, matrix, material, 0);
     }
 
