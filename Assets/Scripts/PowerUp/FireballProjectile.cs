@@ -30,7 +30,20 @@ public class FireballProjectile : MonoBehaviour
         {
             foreach (int id in hits)
             {
-                CollisionManager.Instance.RemoveCollider(id); // enemy dies
+                var b = GetBounds(id);
+                if (b != null && !b.IsPlayer)
+                {
+                    if (b != null && !b.IsPlayer)
+                    {
+                        // remove collider from collision manager
+                        CollisionManager.Instance.RemoveCollider(id);
+
+                        // try to destroy the enemy GameObject
+                        var enemy = FindEnemyByColliderID(id);
+                        if (enemy != null)
+                            Destroy(enemy.gameObject);
+                    }
+                }
             }
             DestroySelf();
         }
@@ -46,5 +59,28 @@ public class FireballProjectile : MonoBehaviour
     {
         CollisionManager.Instance.RemoveCollider(colliderID);
         Destroy(gameObject);
+    }
+
+    AABBBounds GetBounds(int id)
+    {
+        var dict = (System.Collections.Generic.Dictionary<int, AABBBounds>)
+            typeof(CollisionManager)
+            .GetField("_colliders", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+            .GetValue(CollisionManager.Instance);
+
+        dict.TryGetValue(id, out var bounds);
+        return bounds;
+    }
+
+    EnemyInstanced FindEnemyByColliderID(int id)
+    {
+        var enemies = FindObjectsByType<EnemyInstanced>(FindObjectsSortMode.None);
+
+        foreach (var e in enemies)
+        {
+            if (e.GetColliderID() == id)
+                return e;
+        }
+        return null;
     }
 }

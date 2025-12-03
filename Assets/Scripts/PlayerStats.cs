@@ -56,4 +56,19 @@ public class PlayerStats : MonoBehaviour
         invTimer = time;
         Debug.Log("INVINCIBLE!");
     }
+
+    public void TakeDamage(int amount)
+    {
+        if (isInvincible) return;
+
+        lives -= amount;
+        Debug.Log("Player damaged! Lives: " + lives);
+
+        EnableInvincibility(1.0f); // temporary invincibility
+
+        if (lives <= 0)
+        {
+            Time.timeScale = 0f;
+        }
+    }
 }
