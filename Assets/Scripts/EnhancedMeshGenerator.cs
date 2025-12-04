@@ -340,18 +340,36 @@ public class EnhancedMeshGenerator : MonoBehaviour
 
     void RenderBoxes()
     {
+        Camera cam = Camera.main;
+
+        for (int i = 0; i < matrices.Count; i++)
+        {
+            DecomposeMatrix(matrices[i], out Vector3 pos, out Quaternion rot, out Vector3 scale);
+
+            // DOT PRODUCT VISIBILITY CHECK
+            if (!IsInFrontOfCamera(pos))
+            {
+                // Collapse completely
+                scale = Vector3.zero;
+            }
+
+            Matrix4x4 m = Matrix4x4.TRS(pos, rot, scale);
+            matrices[i] = m;
+        }
+
         // Convert list to array for Graphics.DrawMeshInstanced
         Matrix4x4[] matrixArray = matrices.ToArray();
 
-        // Draw instanced meshes in batches of 1023 (GPU limit)
+        // Draw
         for (int i = 0; i < matrixArray.Length; i += 1023)
         {
             int batchSize = Mathf.Min(1023, matrixArray.Length - i);
-            Matrix4x4[] batchMatrices = new Matrix4x4[batchSize];
-            System.Array.Copy(matrixArray, i, batchMatrices, 0, batchSize);
-            Graphics.DrawMeshInstanced(cubeMesh, 0, material, batchMatrices, batchSize);
+            Matrix4x4[] batch = new Matrix4x4[batchSize];
+            System.Array.Copy(matrixArray, i, batch, 0, batchSize);
+            Graphics.DrawMeshInstanced(cubeMesh, 0, material, batch, batchSize);
         }
     }
+
 
     void DecomposeMatrix(Matrix4x4 matrix, out Vector3 position, out Quaternion rotation, out Vector3 scale)
     {
@@ -395,5 +413,18 @@ public class EnhancedMeshGenerator : MonoBehaviour
         int index = colliderIds.IndexOf(playerID);
         Matrix4x4 m = matrices[index];
         return m.GetPosition();
+    }
+
+    bool IsInFrontOfCamera(Vector3 objectPos)
+    {
+        Camera cam = Camera.main;
+        if (cam == null) return true;
+
+        Vector3 camForward = cam.transform.forward;
+        Vector3 toObject = (objectPos - cam.transform.position).normalized;
+
+        float dot = Vector3.Dot(camForward, toObject);
+
+        return dot > 0f; // positive = in front
     }
 }
